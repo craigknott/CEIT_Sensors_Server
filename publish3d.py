@@ -53,7 +53,7 @@ def start_mosquitto(server, client_id, topic, username = None, password = None):
     mqttc.on_subscribe = on_subscribe
     mqttc.on_message = on_message
     mqttc.on_publish = on_publish
-    
+    mqttc.loop();
     
 if __name__ == '__main__':
     start_mosquitto(MQTT.server, MQTT.client_3d, MQTT.topic_temp)
