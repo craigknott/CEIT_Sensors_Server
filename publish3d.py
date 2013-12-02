@@ -47,7 +47,7 @@ class pub3d():
     
     def start_mosquitto(self, server, client_id, topic, username = None, password = None):
         self.mqttc = mosquitto.Mosquitto(client_id)
-        self.mqttc.connect(server, 1883, 60, True)
+        self.mqttc.connect(server, 1883, 60)
         self.mqttc.subscribe(MQTT.topic_temp)
         self.mqttc.on_connect = self.on_connect
         self.mqttc.on_subscribe = self.on_subscribe
