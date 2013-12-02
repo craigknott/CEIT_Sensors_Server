@@ -53,7 +53,7 @@ class pub3d():
         self.mqttc.on_subscribe = self.on_subscribe
         self.mqttc.on_message = self.on_message
         self.mqttc.on_publish = self.on_publish
-        self.mqttc.loop_start();
+        self.mqttc.loop_start()
         
     def __init__(self):
         self.start_mosquitto(MQTT.server, MQTT.client_3d, MQTT.topic_temp)
