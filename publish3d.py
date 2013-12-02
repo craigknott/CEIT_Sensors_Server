@@ -10,6 +10,7 @@ import time
 from MQTT import MQTT
 
 import mosquitto
+import redis
 import json
 import random
 
@@ -40,6 +41,7 @@ class pub3d():
             MQTT.packet['value'] = str(value)
             data = json.dumps(MQTT.packet)
             self.mqttc.publish(MQTT.topic_3d, data)
+            self.redisDB.set(datastream, value)
     
     def on_subscribe(self, mosq, obj, mid, qos_list):
         print("Subscribe with mid "+str(mid)+" received.")
@@ -56,6 +58,7 @@ class pub3d():
         self.mqttc.loop_forever()
         
     def __init__(self):
+        self.redisDB = redis.StrictRedis(host = 'winter.ceit.uq.edu.au', port=6379, db=3)
         self.start_mosquitto(MQTT.server, MQTT.client_3d, MQTT.topic_temp)
         
 if __name__ == '__main__':
