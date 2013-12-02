@@ -49,14 +49,14 @@ class pub3d():
         self.mqttc = mosquitto.Mosquitto(client_id)
         self.mqttc.connect(server, 1883, 60, True)
         self.mqttc.subscribe(MQTT.topic_temp)
-        self.mqttc.on_connect = on_connect
-        self.mqttc.on_subscribe = on_subscribe
-        self.mqttc.on_message = on_message
-        self.mqttc.on_publish = on_publish
+        self.mqttc.on_connect = self.on_connect
+        self.mqttc.on_subscribe = self.on_subscribe
+        self.mqttc.on_message = self.on_message
+        self.mqttc.on_publish = self.on_publish
         self.mqttc.loop_start();
         
     def __init__(self):
-        start_mosquitto(MQTT.server, MQTT.client_3d, MQTT.topic_temp)
+        self.start_mosquitto(MQTT.server, MQTT.client_3d, MQTT.topic_temp)
         
 if __name__ == '__main__':
     pub3d().__init__()
