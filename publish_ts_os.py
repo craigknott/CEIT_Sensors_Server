@@ -19,11 +19,11 @@ senIDS = {
         }
 
 tsIDS = {
-        '23.12.0' : 'field1',  
-        '15.12.0' : 'field2',
+        '34.11.0' : 'field1',  
+        '34.12.0' : 'field2',
         '255.12.0' : 'field3',
         '18.12.0' : 'field4',
-        '34.12.0' : 'field5',
+        '18.11.0' : 'field5',
         '27.11.0' : 'field6',
         '27.12.0' : 'field7',
         '13.12.0' : 'field8'
@@ -90,7 +90,7 @@ class ThingSpeakPacket:
         @return response from ThingSpeak
         """
         headers = {"Content-type": "application/x-www-form-urlencoded","Accept": "text/plain"}
-        url = "api.thingspeak.com"
+        url = "winter.ceit.uq.edu.au:3000"
         res = None
         
         try:
@@ -150,7 +150,7 @@ class mqttStart():
 
             if data2['id'] in tsIDS:
                 tsID = tsIDS[data2['id']]
-                packet = ThingSpeakPacket('W339SCZCM5D8OEJQ', [(tsID, data2['value'])])
+                packet = ThingSpeakPacket('DTBJ7M328632WMKM', [(tsID, data2['value'])])
                 print "ThingSpeak: ", packet.push()
 
 
