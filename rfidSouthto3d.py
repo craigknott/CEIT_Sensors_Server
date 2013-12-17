@@ -33,8 +33,8 @@ class pub3d():
                 print("Value Error loading data")
                 return
             
-            datastream = data2['id']
-            value = data2['value']
+            datastream = data2['IPaddress']
+            value = data2['cardCode']
             print datastream
             print value
             MQTT.packet['id'] = datastream
@@ -54,8 +54,7 @@ class pub3d():
         self.mqttc.on_subscribe = self.on_subscribe
         self.mqttc.on_message = self.on_message
         self.mqttc.on_publish = self.on_publish
-        self.mqttc.subscribe(MQTT.topic_temp)
-	self.mqttc.subscribe("gumballrfid")
+        self.mqttc.subscribe("LIB/rfid/doorSouth")
 	self.mqttc.loop_forever()
         
     def __init__(self):
