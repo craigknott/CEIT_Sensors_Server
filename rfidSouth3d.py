@@ -33,8 +33,8 @@ class pub3d():
                 print("Value Error loading data")
                 return
             
-            datastream = data2['id']
-            value = data2['value']
+            datastream = data2['IPaddress']
+            value = data2['cardCode']
             print datastream
             print value
             MQTT.packet['id'] = datastream
@@ -49,18 +49,17 @@ class pub3d():
     
     def start_mosquitto(self, server, client_id, topic, username = None, password = None):
         self.mqttc = mosquitto.Mosquitto(client_id)
+        self.mqttc.connect(server, 1883, 60)
         self.mqttc.on_connect = self.on_connect
         self.mqttc.on_subscribe = self.on_subscribe
         self.mqttc.on_message = self.on_message
         self.mqttc.on_publish = self.on_publish
-        self.mqttc.subscribe(MQTT.topic_temp)
-	self.mqttc.subscribe("gumballrfid")
-        self.mqttc.connect(server, 1883, 60, True)
+        self.mqttc.subscribe("LIB/rfid/doorSouth")
 	self.mqttc.loop_forever()
         
     def __init__(self):
         self.redisDB = redis.StrictRedis(host = 'winter.ceit.uq.edu.au', port=6379, db=3)
-        self.start_mosquitto(MQTT.server, MQTT.client_3d, MQTT.topic_temp)
+        self.start_mosquitto(MQTT.server, "RFID_SOUTHDOOR" , MQTT.topic_temp)
         
 if __name__ == '__main__':
     pub3d().__init__()

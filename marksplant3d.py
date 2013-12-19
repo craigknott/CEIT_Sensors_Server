@@ -26,22 +26,11 @@ class pub3d():
     def on_message(self, mosq, obj, msg):
         print("Message received on topic "+msg.topic+" with QoS "+str(msg.qos)+" and payload "+msg.payload)
         if msg.payload is not None:
-            data = str(msg.payload)
-            try:
-                data2 = json.loads(data)
-            except ValueError:
-                print("Value Error loading data")
-                return
-            
-            datastream = data2['IPaddress']
-            value = data2['cardCode']
-            print datastream
-            print value
-            MQTT.packet['id'] = datastream
-            MQTT.packet['value'] = str(value)
+            MQTT.packet['id'] = "1.0.0"
+            MQTT.packet['value'] = str(msg.payload)
             data = json.dumps(MQTT.packet)
             self.mqttc.publish(MQTT.topic_3d, data)
-            self.redisDB.set(datastream, value)
+            self.redisDB.set("1.0.0" , str(msg.payload))
     
     def on_subscribe(self, mosq, obj, mid, qos_list):
         print("Subscribe with mid "+str(mid)+" received.")
@@ -54,12 +43,12 @@ class pub3d():
         self.mqttc.on_subscribe = self.on_subscribe
         self.mqttc.on_message = self.on_message
         self.mqttc.on_publish = self.on_publish
-        self.mqttc.subscribe("LIB/rfid/doorSouth")
+        self.mqttc.subscribe("/MarksPlant/data")
 	self.mqttc.loop_forever()
         
     def __init__(self):
         self.redisDB = redis.StrictRedis(host = 'winter.ceit.uq.edu.au', port=6379, db=3)
-        self.start_mosquitto(MQTT.server, MQTT.client_3d, MQTT.topic_temp)
+        self.start_mosquitto(MQTT.server, "MarksPlant1123" , MQTT.topic_temp)
         
 if __name__ == '__main__':
     pub3d().__init__()
