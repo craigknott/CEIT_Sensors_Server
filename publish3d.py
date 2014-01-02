@@ -32,9 +32,15 @@ class pub3d():
             except ValueError:
                 print("Value Error loading data")
                 return
-            
-            datastream = data2['id']
-            value = data2['value']
+            if (msg.topic == "/MarksPlant/data"):
+                datastream = "1.0.0"
+                value = str(msg.payload)
+            elif (msg.topic == "LIB/rfid/doorSouth"):
+                datastream = data2['IPaddress']
+                value = data2['cardCode']
+            else:
+                datastream = data2['id']
+                value = data2['value']
             print datastream
             print value
             MQTT.packet['id'] = datastream
@@ -53,10 +59,12 @@ class pub3d():
         self.mqttc.on_subscribe = self.on_subscribe
         self.mqttc.on_message = self.on_message
         self.mqttc.on_publish = self.on_publish
-        self.mqttc.subscribe(MQTT.topic_temp)
-	self.mqttc.subscribe("gumballrfid")
         self.mqttc.connect(server, 1883, 60, True)
-	self.mqttc.loop_forever()
+        self.mqttc.subscribe(MQTT.topic_temp)
+        self.mqttc.subscribe("gumballrfid")
+        self.mqttc.subscribe("LIB/rfid/doorSouth")
+        self.mqttc.subscribe("/MarksPlant/data")
+    	self.mqttc.loop_forever()
         
     def __init__(self):
         self.redisDB = redis.StrictRedis(host = 'winter.ceit.uq.edu.au', port=6379, db=3)
