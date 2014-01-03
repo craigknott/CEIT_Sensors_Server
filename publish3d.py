@@ -47,7 +47,10 @@ class pub3d():
             MQTT.packet['value'] = str(value)
             data = json.dumps(MQTT.packet)
             self.mqttc.publish(MQTT.topic_3d, data)
-            self.redisDB.set(datastream, value)
+            try:
+                self.redisDB.set(datastream, value)
+            except:
+                print "Redis connection error"
     
     def on_subscribe(self, mosq, obj, mid, qos_list):
         print("Subscribe with mid "+str(mid)+" received.")
