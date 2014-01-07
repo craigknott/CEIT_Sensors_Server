@@ -41,10 +41,14 @@ class pub3d():
             else:
                 datastream = data2['id']
                 value = data2['value']
+		if (data2['name'] == "PIR" and data2['value'] == "1.0"):
+		    print "PIR = 1.0 returning"
+		    return
             print datastream
             print value
             MQTT.packet['id'] = datastream
             MQTT.packet['value'] = str(value)
+	    MQTT.packet['timestamp'] = int(time.time())
             data = json.dumps(MQTT.packet)
             self.mqttc.publish(MQTT.topic_3d, data)
             try:
@@ -70,8 +74,8 @@ class pub3d():
     	self.mqttc.loop_forever()
         
     def __init__(self):
-        self.redisDB = redis.StrictRedis(host = 'winter.ceit.uq.edu.au', port=6379, db=3)
-        self.start_mosquitto(MQTT.server, MQTT.client_3d, MQTT.topic_temp)
+        self.redisDB = redis.StrictRedis(host = 'localhost', port=6379, db=3)
+        self.start_mosquitto('localhost', MQTT.client_3d, MQTT.topic_temp)
         
 if __name__ == '__main__':
     pub3d().__init__()

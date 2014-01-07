@@ -16,6 +16,6 @@ class MQTT:
     topic_db = "/LIB/config/level"
     topic_temp = "/LIB/level4/climate_raw"
     topic_3d = "/LIB/3d/data"
-    packet = {"id":"11.11.11", "value":0}
+    packet = {"id":"11.11.11", "value":0, "timestamp":0}
     rc = None
     pi_id = None
