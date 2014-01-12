@@ -6,13 +6,16 @@ var redis = require('redis');
 //CONFIG
 var HOST = 'talmeeno.com';
 var PORT = 6969;
-var mqttClient = new mqtt.createClient(1883, 'winter.ceit.uq.edu.au', {keepalive: 10000});
+var mqttClient = new mqtt.createClient(1883, 'winter.ceit.uq.edu.au');
 var topic = '/LIB/3d/data';
 var socks = [];
 
-mqttClient.subscribe(topic);
-redisClient = redis.createClient(6379, 'winter.ceit.uq.edu.au');
-
+mqttClient.on('connect', function() {
+    console.log('mqtt connected');
+    mqttClient.subscribe(topic);
+});
+//redisClient = redis.createClient(6379, 'winter.ceit.uq.edu.au');
+redisClient = redis.createClient();
 
 redisClient.on('error', function(err) {
     console.log('Redis ERROR: ' + err);
@@ -24,27 +27,85 @@ redisClient.on('error', function(err) {
 serv = net.createServer(function(sock) {
     var remoteAddress = sock.remoteAddress;
     var remotePort = sock.remotePort;    
-  
+    var keys;  
+    var delay = 0;
     // We have a connection - a socket object is assigned to the connection automatically
     console.log('CONNECTED: ' + remoteAddress +':'+ remotePort);
-    socks.push(sock);
     
-    // Add a 'data' event handler to this instance of socket            
-    sock.on('data', function(data) {
-        redisClient.select(3, function() {
-            redisClient.get(data, function(err, value) {
-                sock.write('{"id":'+data+', "value":'+value+'}');
-                console.log('RedisDATA: '+value);
+    function update_keys(keys, time, callback) {
+        redisClient.select(0, function(err, value) {
+            for_loop(0, keys.length, keys, time, function(keys) {
+                console.log(keys);
+                callback(keys);
             });
         });
-        console.log('DATA ' + remoteAddress + ': ' + data);
+    }
+
+    function for_loop(i, length, keys, time, callback) {
+        if (i < length) {
+            console.log(keys[i]);
+            update_key(keys[i], time, function(key) {
+                keys[i] = key;   
+                if (i+1 < length) {
+                    for_loop(i+1, length, keys, time, callback)
+                } else {
+                    console.log('calling back keys');
+                    callback(keys);
+                }
+            });
+        }
+    }    
+
+    function update_key(key, time, callback) {    
+        try {
+            var arg1 = [key['id'], 0, time];
+            console.log(arg1);
+        } catch (err) {
+            console.log('ERROR: ' + err.number + "; " + err);
+        }
+        redisClient.zrangebyscore(arg1, function(err, value) {
+            try {
+                key['value'] = value[value.length - 1];
+            } catch (err) {
+                console.log('ERROR: ' + err.number + "; " + err);
+            }
+            console.log('calling back from update_key');
+            callback(key);
+        });
+    }
+
+    // Add a 'data' event handler to this instance of socket            
+    sock.on('data', function(data) {
+        var tmp = JSON.parse(data);
+
+        //The first time the client connects it will send init data requesting
+        //The latest values.
+        if (tmp['data'] == 'init') {
+            keys = update_keys(tmp['ids'], tmp['timestamp'], function(keys) {
+                console.log("stringified" + JSON.stringify(keys));
+                sock.write(JSON.stringify(keys)+'\0');
+                socks.push(sock);
+                delay = 0;
+            });
+        } else if (tmp['data'] == '1') {
+            //Gotta start tracking the time specified at the pace specified and pushing data to
+            //the client as it is needed.
+            keys = update_keys(tmp['ids'], tmp['timestamp'], function(keys) {
+                sock.write(JSON.stringify(keys)+'\0');
+                if (delay == 0) {
+                    socks.splice(socks.indexOf(sock), 1);
+                    delay = 1;
+                }
+            });
+        }
+       // console.log('DATA ' + remoteAddress + ': ' + data);
     });
   
     mqttClient.on('message', function(topic, message) {
         try {
             if (socks.indexOf(sock) != -1)
             {           
-                if (sock.write(message))
+                if (sock.write('['+message+']\0'))
                 {
                     console.log('MESSAGE: ' + message);
                     console.log('Success: Payload sent to '+remoteAddress+ ':' + remotePort);
