@@ -57,21 +57,21 @@ serv = net.createServer(function(sock) {
     }    
 
     function update_key(key, time, callback) {    
-        try {
-            var arg1 = [key['id'], 0, time];
-            console.log(arg1);
-        } catch (err) {
-            console.log('ERROR: ' + err.number + "; " + err);
-        }
-        redisClient.zrangebyscore(arg1, function(err, value) {
             try {
-                key['value'] = value[value.length - 1];
+                var arg1 = [key['id'], 0, time];
+                console.log(arg1);
             } catch (err) {
                 console.log('ERROR: ' + err.number + "; " + err);
             }
-            console.log('calling back from update_key');
-            callback(key);
-        });
+            redisClient.zrangebyscore(arg1, function(err, value) {
+                try {
+                    key['value'] = JSON.parse(value[value.length - 1])['value'];
+                } catch (err) {
+                    console.log('ERROR: ' + err.number + "; " + err);
+                }
+                console.log('calling back from update_key');
+                callback(key);
+            });
     }
 
     // Add a 'data' event handler to this instance of socket            

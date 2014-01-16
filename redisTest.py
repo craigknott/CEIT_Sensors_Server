@@ -14,15 +14,21 @@ import redis
 import json
 import random
 
+###
+# Definitions
+###
+subRFID = "rfid"
+subDS = "LIB/rfid/doorSouth"
+subPlant = "/MarksPlant/message"
 
 class pub3d():            
     def on_connect(self, mosq, obj, rc):
         if (rc == 0):
             print("Connected successfully")
             self.mqttc.subscribe(MQTT.topic_temp)
-            self.mqttc.subscribe("gumballrfid")
-            self.mqttc.subscribe("LIB/rfid/doorSouth")
-            self.mqttc.subscribe("/MarksPlant/data")
+            self.mqttc.subscribe(subRFID)
+            self.mqttc.subscribe(subDS)
+            self.mqttc.subscribe(subPlant)
     
     def on_publish(self, mosq, obj, mid):
         print("Message " + str(mid) + " published")
@@ -36,30 +42,32 @@ class pub3d():
             except ValueError:
                 print("Value Error loading data")
                 return
-            if (msg.topic == "/MarksPlant/data"):
+            if (msg.topic == subPlant):
                 datastream = "1.0.0"
                 value = str(msg.payload)
-            elif (msg.topic == "LIB/rfid/doorSouth"):
+            elif (msg.topic == subDS):
                 datastream = data2['IPaddress']
                 value = data2['cardCode']
             else:
-                datastream = data2['id']
-                value = data2['value']		        
                 try:
                     if (data2['name'] == "PIR" and data2['value'] == "1.0"):
-                        print "PIR = 1.0 returning"
-                        return
+                        return;
+                    elif (data2['name'] == "PIR" and data2['value'] == "0.0"):
+                        data2['value'] = 1 + self.redisDB.zcount(data2['id'], int(time.time()-900), int(time.time()))
                 except:
                     print "oops, got an error."
+                datastream = data2['id']
+                value = data2['value']		        
             print datastream
             print value
+            t = int(time.time())
             MQTT.packet['id'] = datastream
             MQTT.packet['value'] = str(value)
-            MQTT.packet['timestamp'] = int(time.time())
-#            data = json.dumps(MQTT.packet)
-#            self.mqttc.publish(MQTT.topic_3d, data)
+            MQTT.packet['timestamp'] = t
+            data = json.dumps(MQTT.packet)
+            self.mqttc.publish(MQTT.topic_3d, data)
             try:
-                self.redisDB.zadd(str(datastream), int(time.time()), str(value))
+                self.redisDB.zadd(str(datastream), str(t), '{"value":'+str(value)+', "timestamp":'+str(t)+'}')
                 print "Successfull zadd " + datastream
             except:
                 print "Redis connection error"
