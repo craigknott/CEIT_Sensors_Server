@@ -87,7 +87,7 @@ class pub3d():
     	self.mqttc.loop_forever()
         
     def __init__(self):
-        self.redisDB = redis.StrictRedis()
+        self.redisDB = redis.StrictRedis(host='localhost', port=6379, db=3)
         self.start_mosquitto(MQTT.server, 'REDIS TESTING CLIENT', MQTT.topic_temp)
         
 if __name__ == '__main__':

@@ -4,9 +4,9 @@ var mqtt = require('mqtt');
 var redis = require('redis');
 
 //CONFIG
-var HOST = 'talmeeno.com';
-var PORT = 6969;
-var mqttClient = new mqtt.createClient(1883, 'winter.ceit.uq.edu.au');
+var HOST = '127.0.0.1';
+var PORT = 3001;
+var mqttClient = new mqtt.createClient(1883, '127.0.0.1');
 var topic = '/LIB/3d/data';
 var socks = [];
 
@@ -33,7 +33,7 @@ serv = net.createServer(function(sock) {
     console.log('CONNECTED: ' + remoteAddress +':'+ remotePort);
     
     function update_keys(keys, time, callback) {
-        redisClient.select(0, function(err, value) {
+        redisClient.select(3, function(err, value) {
             for_loop(0, keys.length, keys, time, function(keys) {
                 console.log(keys);
                 callback(keys);
@@ -73,13 +73,26 @@ serv = net.createServer(function(sock) {
                 callback(key);
             });
     }
-
+	
+    var datastore = "";
     // Add a 'data' event handler to this instance of socket            
     sock.on('data', function(data) {
-        var tmp = JSON.parse(data);
-
-        //The first time the client connects it will send init data requesting
-        //The latest values.
+//	try {
+	    datastore += data;
+	    if (datastore.indexOf('\0') != -1) { 
+		var tmp = JSON.parse(datastore.substr(0, datastore.indexOf('\0')));
+		if (datastore.indexOf('\0') == datastore.length)
+		    datastore = "";
+		else
+		    datastore = datastore.substr(datastore.indexOf('\0') + 1);
+	    } else {
+		return;
+	    }
+//        } catch (err) {
+//	    console.log("errorrrr");
+//	    return;
+//	}
+	//The latest values.
         if (tmp['data'] == 'init') {
             keys = update_keys(tmp['ids'], tmp['timestamp'], function(keys) {
                 console.log("stringified" + JSON.stringify(keys));
@@ -98,6 +111,8 @@ serv = net.createServer(function(sock) {
                 }
             });
         }
+
+        //The first time the client connects it will send init data requesting
        // console.log('DATA ' + remoteAddress + ': ' + data);
     });
   

@@ -1,6 +1,6 @@
 import redis, time
 
-rdb = redis.StrictRedis()
+rdb = redis.StrictRedis(db = 3)
 
 keys = rdb.keys()
 t = []

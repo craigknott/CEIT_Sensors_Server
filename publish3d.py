@@ -32,7 +32,7 @@ class pub3d():
             except ValueError:
                 print("Value Error loading data")
                 return
-            if (msg.topic == "/MarksPlant/data"):
+            if (msg.topic == "/MarksPlant/message"):
                 datastream = "1.0.0"
                 value = str(msg.payload)
             elif (msg.topic == "LIB/rfid/doorSouth"):
@@ -41,9 +41,12 @@ class pub3d():
             else:
                 datastream = data2['id']
                 value = data2['value']
-		if (data2['name'] == "PIR" and data2['value'] == "1.0"):
-		    print "PIR = 1.0 returning"
-		    return
+		try:
+		    if (data2['name'] == "PIR" and data2['value'] == "1.0"):
+		        print "PIR = 1.0 returning"
+		        return
+		except:
+		    print "OOPS we got an error, something must be missing from the data"
             print datastream
             print value
             MQTT.packet['id'] = datastream
